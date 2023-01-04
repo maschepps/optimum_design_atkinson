@@ -34,7 +34,10 @@ objfunction = function(x1, x2,
                     w1, w2, 
                     a, b, c)
   cvec = c(-c/(a^2), c/(b^2), (1/a) - (1/b))
-  value = -t(cvec) %*% (A + (10^(-6) * diag(3))) %*% cvec
+  # value = -t(cvec) %*% (A + (10^(-6) * diag(3)))
+  # value = pracma::mrdivide(-(cvec), (A + (10^(-6) * diag(3))))
+  value =  (-(cvec)) %*%  solve(A + (10^(-6) * diag(3))) 
+  
   con1 = x[1] > x[2]
   con2 = p[1] < 0
   return(value - 1e100 * (con1 + con2))
