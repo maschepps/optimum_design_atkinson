@@ -72,6 +72,13 @@ aaa = metaOpt(FUN = cost_function,
         algorithm = 'GWO',
         numVar = 3,
         rangeVar = rangeV)
+aaa = metaOpt(FUN = cost_function,
+              optimType = 'MAX',
+              algorithm = 'PSO',
+              numVar = 3,
+              rangeVar = rangeV,
+              control = list(Vmax = 100, ci = .0050, cg = 10,
+                             w = .0050))
 
 
 
