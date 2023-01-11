@@ -1,0 +1,138 @@
+x1 = 0.4365980
+p1 = 0.0329664
+x2 = 17.9241816
+p2 = 1 - p1
+
+a = 0.05884
+b = 4.298
+c = 21.8
+
+w1 = p1
+w2 = p2
+
+x = c(x1, x2, p1)
+
+cost_function = function(x){
+  x1 = x[1]
+  x2 = x[2]
+  p1 = x[3]
+  p2 = 1 - p1
+  a = 0.05884
+  b = 4.298
+  c = 21.8
+  value = objfunction_maxtime(x1, x2, 
+                      p1, p2,
+                      a, b, c)
+  return(value)
+}
+
+objfunction = function(x1, x2, 
+                       w1, w2,
+                       a, b, c,
+                       iter){
+  A = information_m(x1, x2, 
+                    w1, w2, 
+                    a, b, c)
+  cvec = c(-c/(a^2), c/(b^2), (1/a) - (1/b))
+  # value = -t(cvec) %*% (A + (10^(-6) * diag(3)))
+  # value = pracma::mrdivide(-(cvec), (A + (10^(-6) * diag(3))))
+  value =  (-(cvec)) %*%  solve(A + (10^(-6) * diag(3)))  %*% cvec
+  
+  con1 = x[1] > x[2]
+  con2 = w1 < 0
+  return(value - 1e100 * (con1 + con2))
+}
+
+objfunction_maxcon = function(x1, x2, 
+                       w1, w2,
+                       a, b, c,
+                       iter){
+  A = information_m(x1, x2, 
+                    w1, w2, 
+                    a, b, c)
+  e = a - b
+  f = log(a / b)
+  tmax = f/e
+  c21 = (e/a - f) / (e^2)
+  c22 = (f-e/b) / (e^2)
+  
+  g1 = exp(-a * tmax)
+  g2 = exp(-b * tmax)
+  h = a * g1 - b * g2
+  
+  
+  cvec = c(c * (g1 * tmax + h * c21), 
+           c * (-g2 * tmax + h * c22),
+           g2 - g1
+           )
+  # value = -t(cvec) %*% (A + (10^(-6) * diag(3)))
+  # value = pracma::mrdivide(-(cvec), (A + (10^(-6) * diag(3))))
+  value =  (-(cvec)) %*%  solve(A + (10^(-6) * diag(3)))  %*% cvec
+  
+  con1 = x[1] > x[2]
+  con2 = w1 < 0
+  return(value - 1e100 * (con1 + con2))
+}
+
+objfunction_maxtime = function(x1, x2,
+                               w1, w2,
+                               a,b,c){
+  A = information_m(x1, x2,
+                    w1, w2,
+                    a,b,c)
+  e = a - b
+  f = log(a / b)
+  cvec = c((e/a - f) / (e^2), (f - e/b) / (e^2), 0)
+  value =  (-(cvec)) %*%  solve(A + (10^(-6) * diag(3)))  %*% cvec
+  
+  con1 = x[1] > x[2]
+  con2 = w1 < 0
+  return(value - 1e100 * (con1 + con2))
+}
+
+
+information_m = function(x1, x2, 
+                         p1, p2,
+                         a, b, c){
+  x = c(x1, x2)
+  p = c(p1, p2)
+  
+  # sapply(1:2, function(x))
+  test = c()
+  for(i in 1:2){
+    FFr = sqrt(p[i]) * c(x[i] * c * exp(-a*x[i]), 
+            -x[i] * c * exp(-b * x[i]),
+            exp(-b  * x[i]) - exp(-a * x[i]))
+    test = rbind(test, FFr)
+  }
+  A = t(test) %*% test
+  return(A)
+}
+
+
+cost_function(x)
+rangeV = rbind(c(0, 0, 0),
+               c(20, 20, 1))
+
+library(metaheuristicOpt)
+aaa = metaOpt(FUN = cost_function,
+        optimType = 'MAX',
+        algorithm = 'GWO',
+        numVar = 3,
+        rangeVar = rangeV)
+aaa = metaOpt(FUN = cost_function,
+              optimType = 'MIN',
+              algorithm = 'PSO',
+              numVar = 3,
+              rangeVar = rangeV,
+              control = list(Vmax = 100, ci = .0050, cg = 10,
+                             w = .0050,
+                             maxIter = 10000))
+
+
+
+
+
+
+
+
